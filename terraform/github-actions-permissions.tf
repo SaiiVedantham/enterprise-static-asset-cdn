@@ -14,6 +14,7 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "iam:UntagOpenIDConnectProvider",
       "iam:ListRolePolicies",
       "iam:GetRolePolicy",
+      "iam:ListAttachedRolePolicies",
       "iam:CreateRole",
       "iam:DeleteRole",
       "iam:PutRolePolicy",
