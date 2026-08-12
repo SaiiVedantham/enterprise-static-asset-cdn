@@ -108,3 +108,49 @@ jobs:
       - name: Terraform Apply
         working-directory: terraform
         run: terraform apply -auto-approve
+  deploy-assets:
+    name: Deploy Static Assets
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: terraform-apply
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::815322869706:role/enterprise-static-cdn-github-actions
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Get S3 bucket name
+        id: bucket
+        working-directory: terraform
+        run: |
+          echo "name=$(terraform output -raw s3_bucket_name)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload static assets
+        run: |
+          aws s3 sync assets/ s3://${{ steps.bucket.outputs.name }}/ \
+            --delete
+
+      - name: Get CloudFront distribution ID
+        id: cloudfront
+        working-directory: terraform
+        run: |
+          echo "id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.cloudfront.outputs.id }}" \
+            --paths "/*"
