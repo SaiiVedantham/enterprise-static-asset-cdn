@@ -12,13 +12,15 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "iam:DeleteOpenIDConnectProvider",
       "iam:TagOpenIDConnectProvider",
       "iam:UntagOpenIDConnectProvider",
+      "iam:ListRolePolicies",
+      "iam:GetRolePolicy",
       "iam:CreateRole",
       "iam:DeleteRole",
       "iam:PutRolePolicy",
       "iam:DeleteRolePolicy",
       "iam:AttachRolePolicy",
       "iam:DetachRolePolicy",
-      "iam:PassRole"
+      "iam:PassRole",
     ]
 
     resources = ["*"]
