@@ -60,6 +60,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Debug OIDC claims
+        shell: bash
+        run: |
+          TOKEN=$(curl -sS \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" \
+            | python -c "import sys,json; print(json.load(sys.stdin)['value'])")
+
+          PAYLOAD=$(echo "$TOKEN" | cut -d '.' -f 2)
+          PAYLOAD=$(echo "$PAYLOAD" | tr '_-' '/+')
+
+          case $((${#PAYLOAD} % 4)) in
+            2) PAYLOAD="${PAYLOAD}==" ;;
+            3) PAYLOAD="${PAYLOAD}=" ;;
+          esac
+
+          echo "$PAYLOAD" | base64 -d | python -c "
+          import sys, json
+          data=json.load(sys.stdin)
+          print('iss:', data.get('iss'))
+          print('aud:', data.get('aud'))
+          print('sub:', data.get('sub'))
+          print('repository:', data.get('repository'))
+          print('repository_id:', data.get('repository_id'))
+          print('repository_owner_id:', data.get('repository_owner_id'))
+          print('environment:', data.get('environment'))
+          "
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
