@@ -28,7 +28,8 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
       variable = "token.actions.githubusercontent.com:sub"
 
       values = [
-        "repo:SaiiVedantham@94446625/enterprise-static-asset-cdn@1330898051:ref:refs/heads/main"
+        "repo:SaiiVedantham@94446625/enterprise-static-asset-cdn@1330898051:ref:refs/heads/main",
+        "repo:SaiiVedantham@94446625/enterprise-static-asset-cdn@1330898051:environment:production",
       ]
     }
   }
